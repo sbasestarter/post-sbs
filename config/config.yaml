@@ -1,0 +1,13 @@
+GRpcServerConfig:
+  Name: "post-sbs:1"
+  Address: ":9130"
+  DiscoveryExConfig:
+    ExternalAddress: "127.0.0.1"
+DbConfig:
+  Redis:
+    "redis-1":
+      DSN: "redis://:redis_default_pass1@dev.env:8900/2"
+DiscoveryServerNames:
+  "post": "post"
+
+Signer: "羊米"
