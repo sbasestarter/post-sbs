@@ -59,6 +59,7 @@ func NewController(ctx context.Context, cfg *config.Config, dbToolset *dbtoolset
 	}
 
 	return &Controller{
+		cfg:      cfg,
 		postConn: postConn,
 		postCli:  postpb.NewPostServiceClient(postConn),
 	}
