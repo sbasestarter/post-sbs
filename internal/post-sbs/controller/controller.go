@@ -52,7 +52,7 @@ func NewController(ctx context.Context, cfg *config.Config, dbToolset *dbtoolset
 		loge.Fatal(ctx, "no post server name config")
 		return nil
 	}
-	postConn, err := clienttoolset.DialGRpcServerByName(gRpcSchema, postServerName, nil)
+	postConn, err := clienttoolset.DialGRpcServerByName(gRpcSchema, postServerName, &cfg.GRpcClientConfigTpl, nil)
 	if err != nil {
 		loge.Fatalf(ctx, "dial %v failed: %v", postServerName, err)
 		return nil

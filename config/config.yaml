@@ -3,6 +3,15 @@ GRpcServerConfig:
   Address: ":9130"
   DiscoveryExConfig:
     ExternalAddress: "127.0.0.1"
+  EnableTracing: true
+  TracingConfig:
+    ServerAddr: "dev.env:6831"
+    ServiceName: "post-sbs"
+GRpcClientConfigTpl:
+  EnableTracing: true
+  TracingConfig:
+    ServerAddr: "dev.env:6831"
+    ServiceName: "post-sbs-cli"
 DbConfig:
   Redis:
     "redis-1":
