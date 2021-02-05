@@ -35,19 +35,19 @@ func main() {
 	}
 
 	ctx := context.Background()
-	dbToolset, err := dbtoolset.NewDBToolset(ctx, &cfg.DBConfig, logger)
+	dbToolset, err := dbtoolset.NewDBToolset(ctx, &cfg.DBConfig, loggerChain)
 	if err != nil {
 		loge.Fatalf(context.Background(), "db toolset create failed: %v", err)
 		return
 	}
-	cfg.GRpcServerConfig.DiscoveryExConfig.Setter, err = librediscovery.NewSetter(ctx, logger, dbToolset.GetRedis(),
+	cfg.GRpcServerConfig.DiscoveryExConfig.Setter, err = librediscovery.NewSetter(ctx, loggerChain, dbToolset.GetRedis(),
 		"", time.Minute)
 	if err != nil {
 		loge.Fatalf(context.Background(), "create rediscovery setter failed: %v", err)
 		return
 	}
 
-	serviceToolset := servicetoolset.NewServerToolset(context.Background(), logger)
+	serviceToolset := servicetoolset.NewServerToolset(context.Background(), loggerChain)
 	_ = serviceToolset.CreateGRpcServer(&cfg.GRpcServerConfig, nil, func(s *grpc.Server) {
 		postsbspb.RegisterPostSBSServiceServer(s, server.NewServer(context.Background(), &cfg, dbToolset))
 	})
