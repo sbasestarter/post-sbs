@@ -3,19 +3,20 @@ package server
 import (
 	"context"
 
-	"github.com/jiuzhou-zhao/go-fundamental/dbtoolset"
+	"github.com/go-redis/redis/v8"
 	"github.com/sbasestarter/post-sbs/internal/config"
 	"github.com/sbasestarter/post-sbs/internal/post-sbs/controller"
 	"github.com/sbasestarter/proto-repo/gen/protorepo-post-sbs-go"
+	"github.com/sgostarter/i/l"
 )
 
 type Server struct {
 	controller *controller.Controller
 }
 
-func NewServer(ctx context.Context, cfg *config.Config, toolset *dbtoolset.DBToolset) *Server {
+func NewServer(ctx context.Context, cfg *config.Config, redisCli *redis.Client, logger l.Wrapper) *Server {
 	return &Server{
-		controller: controller.NewController(ctx, cfg, toolset),
+		controller: controller.NewController(ctx, cfg, redisCli, logger),
 	}
 }
 

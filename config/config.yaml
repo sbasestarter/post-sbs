@@ -1,22 +1,11 @@
-GRpcServerConfig:
-  Name: "post-sbs:1"
-  Address: ":9130"
-  DiscoveryExConfig:
-    ExternalAddress: "127.0.0.1"
-  EnableTracing: true
-  TracingConfig:
-    ServerAddr: "dev.env:6831"
-    ServiceName: "post-sbs"
-GRpcClientConfigTpl:
-  EnableTracing: true
-  TracingConfig:
-    ServerAddr: "dev.env:6831"
-    ServiceName: "post-sbs-cli"
-DbConfig:
-  Redis:
-    "redis-1":
-      DSN: "redis://:redis_default_pass1@dev.env:8900/2"
-DiscoveryServerNames:
+grpc_server_config:
+  name: "post-sbs:1"
+  address: ":9130"
+  discovery_ex_config:
+    external_address: "127.0.0.1"
+grpc_client_config_tpl:
+redis_dsn: "redis://:redis_default_pass@env.dev:8900/0"
+discovery_server_names:
   "post": "post"
 
-Signer: "羊米"
+signer: "羊米"

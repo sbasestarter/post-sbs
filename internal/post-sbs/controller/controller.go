@@ -6,15 +6,15 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/jiuzhou-zhao/go-fundamental/clienttoolset"
-	"github.com/jiuzhou-zhao/go-fundamental/dbtoolset"
-	"github.com/jiuzhou-zhao/go-fundamental/loge"
-	"github.com/jiuzhou-zhao/go-fundamental/utils"
+	"github.com/go-redis/redis/v8"
 	"github.com/sbasestarter/post-sbs/internal/config"
 	"github.com/sbasestarter/post/pkg/post"
 	"github.com/sbasestarter/proto-repo/gen/protorepo-post-go"
 	"github.com/sbasestarter/proto-repo/gen/protorepo-post-sbs-go"
+	"github.com/sgostarter/i/l"
+	"github.com/sgostarter/libeasygo/helper"
 	"github.com/sgostarter/librediscovery"
+	"github.com/sgostarter/libservicetoolset/clienttoolset"
 	"google.golang.org/grpc"
 )
 
@@ -28,33 +28,39 @@ type Controller struct {
 	cfg      *config.Config
 	postConn *grpc.ClientConn
 	postCli  postpb.PostServiceClient
+	logger   l.WrapperWithContext
 }
 
-func NewController(ctx context.Context, cfg *config.Config, dbToolset *dbtoolset.DBToolset) *Controller {
-	getter, err := librediscovery.NewGetter(ctx, loge.GetGlobalLogger().GetLogger(), dbToolset.GetRedis(),
+func NewController(ctx context.Context, cfg *config.Config, redisCli *redis.Client, logger l.Wrapper) *Controller {
+	if logger == nil {
+		logger = l.NewNopLoggerWrapper()
+	}
+
+	lc := logger.GetWrapperWithContext()
+
+	getter, err := librediscovery.NewGetter(ctx, logger, redisCli,
 		"", 5*time.Minute, time.Minute)
 	if err != nil {
-		loge.Fatalf(ctx, "new discovery getter failed: %v", err)
+		lc.Fatalf(ctx, "new discovery getter failed: %v", err)
 		return nil
 	}
 
 	err = clienttoolset.RegisterSchemas(ctx, &clienttoolset.RegisterSchemasConfig{
 		Getter:  getter,
-		Logger:  loge.GetGlobalLogger().GetLogger(),
 		Schemas: []string{gRpcSchema},
-	})
+	}, logger)
 	if err != nil {
-		loge.Fatalf(ctx, "register schema failed: %v", err)
+		lc.Fatalf(ctx, "register schema failed: %v", err)
 		return nil
 	}
 	postServerName, ok := cfg.DiscoveryServerNames[serverNamePostKey]
 	if !ok || postServerName == "" {
-		loge.Fatal(ctx, "no post server name config")
+		lc.Fatal(ctx, "no post server name config")
 		return nil
 	}
 	postConn, err := clienttoolset.DialGRpcServerByName(gRpcSchema, postServerName, &cfg.GRpcClientConfigTpl, nil)
 	if err != nil {
-		loge.Fatalf(ctx, "dial %v failed: %v", postServerName, err)
+		lc.Fatalf(ctx, "dial %v failed: %v", postServerName, err)
 		return nil
 	}
 
@@ -62,6 +68,7 @@ func NewController(ctx context.Context, cfg *config.Config, dbToolset *dbtoolset
 		cfg:      cfg,
 		postConn: postConn,
 		postCli:  postpb.NewPostServiceClient(postConn),
+		logger:   lc.WithFields(l.StringField(l.ClsKey, "Controller")),
 	}
 }
 
@@ -73,28 +80,30 @@ func (c *Controller) PostCode(ctx context.Context, protocol postsbspb.PostProtoc
 	case postsbspb.PostProtocolType_PostProtocolSMS:
 		return c.postSMS(ctx, purpose, to, code, expiredTimestamp)
 	}
-	loge.Errorf(ctx, "unknown protocol %v", protocol)
+	c.logger.Errorf(ctx, "unknown protocol %v", protocol)
 	return fmt.Errorf("未知的协议: %v", protocol)
 }
 
 func (c *Controller) post(ctx context.Context, req *postpb.SendTemplateRequest) error {
 	var resp *postpb.SendTemplateResponse
 	var err error
-	utils.TimeoutOp(ctx, 10*time.Second, func(ctx context.Context) {
+
+	helper.DoWithTimeout(ctx, 10*time.Second, func(ctx context.Context) {
 		resp, err = c.postCli.SendTemplate(ctx, req)
 	})
+
 	if err != nil {
-		loge.Errorf(ctx, "post send template failed: %v", err)
+		c.logger.Errorf(ctx, "post send template failed: %v", err)
 		return err
 	}
 	if resp == nil || resp.Status == nil {
 		err = errors.New("post send template return none")
-		loge.Error(ctx, err)
+		c.logger.Error(ctx, err)
 		return err
 	}
 	if resp.Status.Status != postpb.PostStatus_PS_SUCCESS {
 		err = fmt.Errorf("post send template failed: %v", resp.Status.Msg)
-		loge.Error(ctx, err)
+		c.logger.Error(ctx, err)
 		return err
 	}
 	return nil
@@ -111,7 +120,7 @@ func (c *Controller) postSMS(ctx context.Context, purpose postsbspb.PostPurposeT
 	case postsbspb.PostPurposeType_PostPurposeResetPassword:
 		templateId = "557914"
 	default:
-		loge.Errorf(ctx, "unknown purpose %v", purpose)
+		c.logger.Errorf(ctx, "unknown purpose %v", purpose)
 		return fmt.Errorf("未知的: %v", purpose)
 	}
 	req := &postpb.SendTemplateRequest{
@@ -137,7 +146,7 @@ func (c *Controller) postEmail(ctx context.Context, purpose postsbspb.PostPurpos
 	case postsbspb.PostPurposeType_PostPurposeResetPassword:
 		subject = "羊米重置密码验证码"
 	default:
-		loge.Errorf(ctx, "unknown purpose %v", purpose)
+		c.logger.Errorf(ctx, "unknown purpose %v", purpose)
 		return fmt.Errorf("未知的: %v", purpose)
 	}
 	req := &postpb.SendTemplateRequest{

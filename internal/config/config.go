@@ -1,17 +1,16 @@
 package config
 
 import (
-	"github.com/jiuzhou-zhao/go-fundamental/clienttoolset"
-	"github.com/jiuzhou-zhao/go-fundamental/dbtoolset"
-	"github.com/jiuzhou-zhao/go-fundamental/servicetoolset"
+	"github.com/sgostarter/libservicetoolset/clienttoolset"
+	"github.com/sgostarter/libservicetoolset/servicetoolset"
 )
 
 type Config struct {
-	GRpcServerConfig    servicetoolset.GRpcServerConfig
-	GRpcClientConfigTpl clienttoolset.GRpcClientConfig
-	DBConfig            dbtoolset.DBConfig
+	GRpcServerConfig    servicetoolset.GRPCServerConfig `yaml:"grpc_server_config"`
+	GRpcClientConfigTpl clienttoolset.GRPCClientConfig  `yaml:"grpc_client_config_tpl"`
+	RedisDSN            string                          `yaml:"redis_dsn"`
 
-	DiscoveryServerNames map[string]string
+	DiscoveryServerNames map[string]string `yaml:"discovery_server_names"`
 
-	Signer string
+	Signer string `yaml:"signer"`
 }
