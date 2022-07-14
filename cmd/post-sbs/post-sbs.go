@@ -6,7 +6,7 @@ import (
 
 	"github.com/sbasestarter/post-sbs/internal/config"
 	"github.com/sbasestarter/post-sbs/internal/post-sbs/server"
-	postsbspb "github.com/sbasestarter/proto-repo/gen/protorepo-post-sbs-go"
+	postsbspb "github.com/sbasestarter/proto-repo/gen/protorepo-postsbs-go"
 	"github.com/sgostarter/i/l"
 	"github.com/sgostarter/libconfig"
 	"github.com/sgostarter/liblogrus"

@@ -2,7 +2,6 @@ package controller
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"time"
 
@@ -10,7 +9,7 @@ import (
 	"github.com/sbasestarter/post-sbs/internal/config"
 	"github.com/sbasestarter/post/pkg/post"
 	postpb "github.com/sbasestarter/proto-repo/gen/protorepo-post-go"
-	postsbspb "github.com/sbasestarter/proto-repo/gen/protorepo-post-sbs-go"
+	postsbspb "github.com/sbasestarter/proto-repo/gen/protorepo-postsbs-go"
 	"github.com/sgostarter/i/l"
 	"github.com/sgostarter/libeasygo/helper"
 	"github.com/sgostarter/librediscovery"
@@ -81,9 +80,9 @@ func NewController(ctx context.Context, cfg *config.Config, redisCli *redis.Clie
 func (c *Controller) PostCode(ctx context.Context, protocol postsbspb.PostProtocolType,
 	purpose postsbspb.PostPurposeType, to, code string, expiredTimestamp int64) error {
 	switch protocol {
-	case postsbspb.PostProtocolType_PostProtocolMail:
+	case postsbspb.PostProtocolType_POST_PROTOCOL_TYPE_MAIL:
 		return c.postEmail(ctx, purpose, to, code, expiredTimestamp)
-	case postsbspb.PostProtocolType_PostProtocolSMS:
+	case postsbspb.PostProtocolType_POST_PROTOCOL_TYPE_SMS:
 		return c.postSMS(ctx, purpose, to, code, expiredTimestamp)
 	}
 
@@ -93,30 +92,14 @@ func (c *Controller) PostCode(ctx context.Context, protocol postsbspb.PostProtoc
 }
 
 func (c *Controller) post(ctx context.Context, req *postpb.SendTemplateRequest) error {
-	var resp *postpb.SendTemplateResponse
-
 	var err error
 
 	helper.DoWithTimeout(ctx, 10*time.Second, func(ctx context.Context) {
-		resp, err = c.postCli.SendTemplate(ctx, req)
+		_, err = c.postCli.SendTemplate(ctx, req)
 	})
 
 	if err != nil {
 		c.logger.Errorf(ctx, "post send template failed: %v", err)
-
-		return err
-	}
-
-	if resp == nil || resp.Status == nil {
-		err = errors.New("post send template return none")
-		c.logger.Error(ctx, err)
-
-		return err
-	}
-
-	if resp.Status.Status != postpb.PostStatus_PS_SUCCESS {
-		err = fmt.Errorf("post send template failed: %v", resp.Status.Msg)
-		c.logger.Error(ctx, err)
 
 		return err
 	}
@@ -129,11 +112,11 @@ func (c *Controller) postSMS(ctx context.Context, purpose postsbspb.PostPurposeT
 	var templateID string
 
 	switch purpose {
-	case postsbspb.PostPurposeType_PostPurposeRegister:
+	case postsbspb.PostPurposeType_POST_PURPOSE_TYPE_REGISTER:
 		templateID = "389596"
-	case postsbspb.PostPurposeType_PostPurposeLogin:
+	case postsbspb.PostPurposeType_POST_PURPOSE_TYPE_LOGIN:
 		templateID = "860253"
-	case postsbspb.PostPurposeType_PostPurposeResetPassword:
+	case postsbspb.PostPurposeType_POST_PURPOSE_TYPE_RESET_PASSWORD:
 		templateID = "557914"
 	default:
 		c.logger.Errorf(ctx, "unknown purpose %v", purpose)
@@ -143,7 +126,7 @@ func (c *Controller) postSMS(ctx context.Context, purpose postsbspb.PostPurposeT
 
 	req := &postpb.SendTemplateRequest{
 		ProtocolType: post.ProtocolTypeSMS,
-		To:           []string{to},
+		Tos:          []string{to},
 		TemplateId:   templateID,
 		Vars: []string{
 			code,
@@ -159,11 +142,11 @@ func (c *Controller) postEmail(ctx context.Context, purpose postsbspb.PostPurpos
 	var subject string
 
 	switch purpose {
-	case postsbspb.PostPurposeType_PostPurposeRegister:
+	case postsbspb.PostPurposeType_POST_PURPOSE_TYPE_REGISTER:
 		subject = "羊米注册验证码"
-	case postsbspb.PostPurposeType_PostPurposeLogin:
+	case postsbspb.PostPurposeType_POST_PURPOSE_TYPE_LOGIN:
 		subject = "羊米登录验证码"
-	case postsbspb.PostPurposeType_PostPurposeResetPassword:
+	case postsbspb.PostPurposeType_POST_PURPOSE_TYPE_RESET_PASSWORD:
 		subject = "羊米重置密码验证码"
 	default:
 		c.logger.Errorf(ctx, "unknown purpose %v", purpose)
@@ -173,7 +156,7 @@ func (c *Controller) postEmail(ctx context.Context, purpose postsbspb.PostPurpos
 
 	req := &postpb.SendTemplateRequest{
 		ProtocolType: post.ProtocolTypeEmail,
-		To:           []string{to},
+		Tos:          []string{to},
 		TemplateId:   "0",
 		Vars: []string{
 			subject,

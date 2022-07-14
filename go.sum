@@ -443,10 +443,10 @@ github.com/russross/blackfriday/v2 v2.0.1/go.mod h1:+Rmxgy9KzJVeS9/2gXHxylqXiyQD
 github.com/ryanuber/columnize v0.0.0-20160712163229-9b3edd62028f/go.mod h1:sm1tb6uqfes/u+d4ooFouqFdy9/2g9QGwK3SQygK0Ts=
 github.com/samuel/go-zookeeper v0.0.0-20190923202752-2cc03de413da/go.mod h1:gi+0XIa01GRL2eRQVjQkKGqKF3SF9vZR/HnPullcV2E=
 github.com/satori/go.uuid v1.2.0/go.mod h1:dA0hQrYB0VpLJoorglMZABFdXlWrHn1NEOzdhQKdks0=
-github.com/sbasestarter/post v0.0.0-20220707034808-f1adbd36bf69 h1:ju0qARV/gOGfjMf3B9Sp22zMYnbGfjvh1WbHuZ6zzao=
-github.com/sbasestarter/post v0.0.0-20220707034808-f1adbd36bf69/go.mod h1:XxxFMyyvuuGP68OQiawaJVhs9Kynwi9IleqB99geHXA=
-github.com/sbasestarter/proto-repo v0.0.5-0.20210419054605-3a7a0c86d74b h1:y6UcT/QM8HDT4U+fQXqCbnprNwdAUYo9zphNF5mt9Mk=
-github.com/sbasestarter/proto-repo v0.0.5-0.20210419054605-3a7a0c86d74b/go.mod h1:Sf2ll2UO3Q7VZufii0EsnPaesOQTUMKVXcZr6gnd2O0=
+github.com/sbasestarter/post v0.0.0-20220714092546-8fcf94d89adc h1:Z0yhlFrJqeJWHrPR1/UYN2RoGVTszwDjra7rGiQklBw=
+github.com/sbasestarter/post v0.0.0-20220714092546-8fcf94d89adc/go.mod h1:ayMZvSNKlfoouUW+cGxt0QrGFFBK2YMFt3RrP5kSDNo=
+github.com/sbasestarter/proto-repo v0.0.6 h1:4z1pxxU/VnGGa693AiEqWPekE6zaN6EzCKHzDek/GO0=
+github.com/sbasestarter/proto-repo v0.0.6/go.mod h1:Sf2ll2UO3Q7VZufii0EsnPaesOQTUMKVXcZr6gnd2O0=
 github.com/sean-/seed v0.0.0-20170313163322-e2103e2c3529/go.mod h1:DxrIzT+xaE7yg65j358z/aeFdxmN0P9QXhEzd20vsDc=
 github.com/sgostarter/i v0.1.6/go.mod h1:buUUS9rtMjKmQhYNKxiM+brhFX7jLzZKv6AuZlHCgGk=
 github.com/sgostarter/i v0.1.11/go.mod h1:buUUS9rtMjKmQhYNKxiM+brhFX7jLzZKv6AuZlHCgGk=
@@ -461,7 +461,6 @@ github.com/sgostarter/liblogrus v0.0.9 h1:FqO/oRdDrggjbNiKOfqJPnJQyXBFkxaN97Rh7z
 github.com/sgostarter/liblogrus v0.0.9/go.mod h1:0elAN9VLFkTffeo4ww2R8FFnCZYq/HO/tNPIyXkiobc=
 github.com/sgostarter/librediscovery v0.0.1 h1:rYOui8yT7xrqENIE389WPBZACi0Q7QveBtWfBh4Ax5Q=
 github.com/sgostarter/librediscovery v0.0.1/go.mod h1:KBCaiKmvQfg/7q/UyvMFM3nIKYEObaMUSxH7DcOnCGs=
-github.com/sgostarter/libservicetoolset v0.0.18/go.mod h1:oBnuczoyQXdNzk25Oo2xEpi5WRAaOXhR8LE867wRV0c=
 github.com/sgostarter/libservicetoolset v0.0.19 h1:lrbi7zSoqccorFoMLUmCOk2vyorksmzo/kSketOiNTo=
 github.com/sgostarter/libservicetoolset v0.0.19/go.mod h1:35J9vkB/b/rMn2MpzXiAQ+5XUnOxNtXyurn3eEIB9sY=
 github.com/shopspring/decimal v0.0.0-20180709203117-cd690d0c9e24/go.mod h1:M+9NzErvs504Cn4c5DxATwIqPbtswREoFCre64PpcG4=

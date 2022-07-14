@@ -6,8 +6,11 @@ import (
 	"github.com/go-redis/redis/v8"
 	"github.com/sbasestarter/post-sbs/internal/config"
 	"github.com/sbasestarter/post-sbs/internal/post-sbs/controller"
-	postsbspb "github.com/sbasestarter/proto-repo/gen/protorepo-post-sbs-go"
+	postsbspb "github.com/sbasestarter/proto-repo/gen/protorepo-postsbs-go"
+	sharepb "github.com/sbasestarter/proto-repo/gen/protorepo-share-go"
 	"github.com/sgostarter/i/l"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type Server struct {
@@ -20,20 +23,11 @@ func NewServer(ctx context.Context, cfg *config.Config, redisCli *redis.Client, 
 	}
 }
 
-func (s *Server) PostCode(ctx context.Context, req *postsbspb.PostCodeRequest) (*postsbspb.PostCodeResponse, error) {
+func (s *Server) PostCode(ctx context.Context, req *postsbspb.PostCodeRequest) (*sharepb.Empty, error) {
 	err := s.controller.PostCode(ctx, req.ProtocolType, req.PurposeType, req.To, req.Code, req.ExpiredTimestamp)
-	status := postsbspb.PostSBSStatus_PS_SBS_SUCCESS
-	msg := ""
-
 	if err != nil {
-		status = postsbspb.PostSBSStatus_PS_SBS__FAILED
-		msg = err.Error()
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	return &postsbspb.PostCodeResponse{
-		Status: &postsbspb.ServerStatus{
-			Status: status,
-			Msg:    msg,
-		},
-	}, nil
+	return &sharepb.Empty{}, nil
 }
