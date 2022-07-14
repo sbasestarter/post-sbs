@@ -9,8 +9,8 @@ import (
 	"github.com/go-redis/redis/v8"
 	"github.com/sbasestarter/post-sbs/internal/config"
 	"github.com/sbasestarter/post/pkg/post"
-	"github.com/sbasestarter/proto-repo/gen/protorepo-post-go"
-	"github.com/sbasestarter/proto-repo/gen/protorepo-post-sbs-go"
+	postpb "github.com/sbasestarter/proto-repo/gen/protorepo-post-go"
+	postsbspb "github.com/sbasestarter/proto-repo/gen/protorepo-post-sbs-go"
 	"github.com/sgostarter/i/l"
 	"github.com/sgostarter/libeasygo/helper"
 	"github.com/sgostarter/librediscovery"
@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	gRpcSchema = "grpclb"
+	gRPCSchema = "grpclb"
 
 	serverNamePostKey = "post"
 )
@@ -42,25 +42,31 @@ func NewController(ctx context.Context, cfg *config.Config, redisCli *redis.Clie
 		"", 5*time.Minute, time.Minute)
 	if err != nil {
 		lc.Fatalf(ctx, "new discovery getter failed: %v", err)
+
 		return nil
 	}
 
 	err = clienttoolset.RegisterSchemas(ctx, &clienttoolset.RegisterSchemasConfig{
 		Getter:  getter,
-		Schemas: []string{gRpcSchema},
+		Schemas: []string{gRPCSchema},
 	}, logger)
 	if err != nil {
 		lc.Fatalf(ctx, "register schema failed: %v", err)
+
 		return nil
 	}
+
 	postServerName, ok := cfg.DiscoveryServerNames[serverNamePostKey]
 	if !ok || postServerName == "" {
 		lc.Fatal(ctx, "no post server name config")
+
 		return nil
 	}
-	postConn, err := clienttoolset.DialGRpcServerByName(gRpcSchema, postServerName, &cfg.GRpcClientConfigTpl, nil)
+
+	postConn, err := clienttoolset.DialGRpcServerByName(gRPCSchema, postServerName, &cfg.GRpcClientConfigTpl, nil)
 	if err != nil {
 		lc.Fatalf(ctx, "dial %v failed: %v", postServerName, err)
+
 		return nil
 	}
 
@@ -80,12 +86,15 @@ func (c *Controller) PostCode(ctx context.Context, protocol postsbspb.PostProtoc
 	case postsbspb.PostProtocolType_PostProtocolSMS:
 		return c.postSMS(ctx, purpose, to, code, expiredTimestamp)
 	}
+
 	c.logger.Errorf(ctx, "unknown protocol %v", protocol)
+
 	return fmt.Errorf("未知的协议: %v", protocol)
 }
 
 func (c *Controller) post(ctx context.Context, req *postpb.SendTemplateRequest) error {
 	var resp *postpb.SendTemplateResponse
+
 	var err error
 
 	helper.DoWithTimeout(ctx, 10*time.Second, func(ctx context.Context) {
@@ -94,50 +103,61 @@ func (c *Controller) post(ctx context.Context, req *postpb.SendTemplateRequest) 
 
 	if err != nil {
 		c.logger.Errorf(ctx, "post send template failed: %v", err)
+
 		return err
 	}
+
 	if resp == nil || resp.Status == nil {
 		err = errors.New("post send template return none")
 		c.logger.Error(ctx, err)
+
 		return err
 	}
+
 	if resp.Status.Status != postpb.PostStatus_PS_SUCCESS {
 		err = fmt.Errorf("post send template failed: %v", resp.Status.Msg)
 		c.logger.Error(ctx, err)
+
 		return err
 	}
+
 	return nil
 }
 
 func (c *Controller) postSMS(ctx context.Context, purpose postsbspb.PostPurposeType,
 	to, code string, expiredTimestamp int64) error {
-	var templateId string
+	var templateID string
+
 	switch purpose {
 	case postsbspb.PostPurposeType_PostPurposeRegister:
-		templateId = "389596"
+		templateID = "389596"
 	case postsbspb.PostPurposeType_PostPurposeLogin:
-		templateId = "860253"
+		templateID = "860253"
 	case postsbspb.PostPurposeType_PostPurposeResetPassword:
-		templateId = "557914"
+		templateID = "557914"
 	default:
 		c.logger.Errorf(ctx, "unknown purpose %v", purpose)
+
 		return fmt.Errorf("未知的: %v", purpose)
 	}
+
 	req := &postpb.SendTemplateRequest{
 		ProtocolType: post.ProtocolTypeSMS,
 		To:           []string{to},
-		TemplateId:   templateId,
+		TemplateId:   templateID,
 		Vars: []string{
 			code,
 			fmt.Sprintf("%v", int(time.Until(time.Unix(expiredTimestamp, 0)).Minutes())),
 		},
 	}
+
 	return c.post(ctx, req)
 }
 
 func (c *Controller) postEmail(ctx context.Context, purpose postsbspb.PostPurposeType,
 	to, code string, expiredTimestamp int64) error {
-	subject := ""
+	var subject string
+
 	switch purpose {
 	case postsbspb.PostPurposeType_PostPurposeRegister:
 		subject = "羊米注册验证码"
@@ -147,8 +167,10 @@ func (c *Controller) postEmail(ctx context.Context, purpose postsbspb.PostPurpos
 		subject = "羊米重置密码验证码"
 	default:
 		c.logger.Errorf(ctx, "unknown purpose %v", purpose)
+
 		return fmt.Errorf("未知的: %v", purpose)
 	}
+
 	req := &postpb.SendTemplateRequest{
 		ProtocolType: post.ProtocolTypeEmail,
 		To:           []string{to},
@@ -159,5 +181,6 @@ func (c *Controller) postEmail(ctx context.Context, purpose postsbspb.PostPurpos
 			c.cfg.Signer,
 		},
 	}
+
 	return c.post(ctx, req)
 }

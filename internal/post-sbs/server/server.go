@@ -6,7 +6,7 @@ import (
 	"github.com/go-redis/redis/v8"
 	"github.com/sbasestarter/post-sbs/internal/config"
 	"github.com/sbasestarter/post-sbs/internal/post-sbs/controller"
-	"github.com/sbasestarter/proto-repo/gen/protorepo-post-sbs-go"
+	postsbspb "github.com/sbasestarter/proto-repo/gen/protorepo-post-sbs-go"
 	"github.com/sgostarter/i/l"
 )
 
@@ -24,10 +24,12 @@ func (s *Server) PostCode(ctx context.Context, req *postsbspb.PostCodeRequest) (
 	err := s.controller.PostCode(ctx, req.ProtocolType, req.PurposeType, req.To, req.Code, req.ExpiredTimestamp)
 	status := postsbspb.PostSBSStatus_PS_SBS_SUCCESS
 	msg := ""
+
 	if err != nil {
 		status = postsbspb.PostSBSStatus_PS_SBS__FAILED
 		msg = err.Error()
 	}
+
 	return &postsbspb.PostCodeResponse{
 		Status: &postsbspb.ServerStatus{
 			Status: status,
